@@ -21,10 +21,16 @@ const router = Router();
  *           schema:
  *             $ref: '#/components/schemas/FamilyCreate'
  *           examples:
- *             default:
- *               $ref: '#/components/examples/Family_Create'
- *             with_parent:
- *               $ref: '#/components/examples/Family_Create_WithParent'
+ *             ex1_minimal:
+ *               $ref: '#/components/examples/Family_Create_1_Minimal'
+ *             ex2_with_parent:
+ *               $ref: '#/components/examples/Family_Create_2_WithParent'
+ *             ex3_no_groups:
+ *               $ref: '#/components/examples/Family_Create_3_NoGroups'
+ *             ex4_empty_groups:
+ *               $ref: '#/components/examples/Family_Create_4_EmptyGroups'
+ *             ex5_two_groups:
+ *               $ref: '#/components/examples/Family_Create_5_TwoGroups'
  *               attributeGroups: { type: array, items: { type: string } }
  *               attributes: { type: object }
  *     responses:

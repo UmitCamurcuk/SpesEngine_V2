@@ -21,8 +21,16 @@ const router = Router();
  *           schema:
  *             $ref: '#/components/schemas/AttributeGroupCreate'
  *           examples:
- *             default:
- *               $ref: '#/components/examples/AttributeGroup_Create'
+ *             ex1_minimal:
+ *               $ref: '#/components/examples/AttributeGroup_Create_1_Minimal'
+ *             ex2_with_desc:
+ *               $ref: '#/components/examples/AttributeGroup_Create_2_WithDesc'
+ *             ex3_with_attributes:
+ *               $ref: '#/components/examples/AttributeGroup_Create_3_WithAttributes'
+ *             ex4_empty_attributes:
+ *               $ref: '#/components/examples/AttributeGroup_Create_4_EmptyAttributes'
+ *             ex5_another:
+ *               $ref: '#/components/examples/AttributeGroup_Create_5_Another'
  *     responses:
  *       201: { description: Created }
  */

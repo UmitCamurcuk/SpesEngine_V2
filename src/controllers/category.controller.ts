@@ -3,10 +3,8 @@ import { Category } from '../models/Category';
 import { validateEntityAttributes } from '../utils/attributeValidation';
 
 export const createCategory = async (req: Request, res: Response) => {
-  if (req.body.attributes || req.body.attributeGroups) {
-    const groupIds: string[] = req.body.attributeGroups || [];
-    const normalized = await validateEntityAttributes({ attributeGroupIds: groupIds, values: req.body.attributes, isUpdate: false });
-    req.body.attributes = normalized;
+  if (Object.prototype.hasOwnProperty.call(req.body, 'attributes')) {
+    return res.status(400).json({ message: 'Attributes cannot be provided on create. Provide only attributeGroups; set attributes via PATCH.' });
   }
   const doc = await Category.create(req.body);
   res.status(201).json(doc);

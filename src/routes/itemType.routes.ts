@@ -22,8 +22,16 @@ const router = Router();
  *           schema:
  *             $ref: '#/components/schemas/ItemTypeCreate'
  *           examples:
- *             default:
- *               $ref: '#/components/examples/ItemType_Create'
+ *             ex1_minimal:
+ *               $ref: '#/components/examples/ItemType_Create_1_Minimal'
+ *             ex2_with_desc:
+ *               $ref: '#/components/examples/ItemType_Create_2_WithDesc'
+ *             ex3_with_groups:
+ *               $ref: '#/components/examples/ItemType_Create_3_WithGroups'
+ *             ex4_groups_and_attrs:
+ *               $ref: '#/components/examples/ItemType_Create_4_WithGroupsAndAttrs'
+ *             ex5_empty_groups:
+ *               $ref: '#/components/examples/ItemType_Create_5_EmptyGroups'
  *               attributeGroups: { type: array, items: { type: string } }
  *               attributes: { type: object }
  *     responses:

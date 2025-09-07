@@ -37,8 +37,16 @@ const router = Router();
  *           schema:
  *             $ref: '#/components/schemas/AssociationCreate'
  *           examples:
- *             default:
- *               $ref: '#/components/examples/Association_Create'
+ *             ex1_cat_to_itemtype:
+ *               $ref: '#/components/examples/Association_Create_1_CategoryToItemType'
+ *             ex2_family_to_category:
+ *               $ref: '#/components/examples/Association_Create_2_FamilyToCategory'
+ *             ex3_itemtype_to_category:
+ *               $ref: '#/components/examples/Association_Create_3_ItemTypeToCategory'
+ *             ex4_family_to_itemtype:
+ *               $ref: '#/components/examples/Association_Create_4_FamilyToItemType'
+ *             ex5_category_contains_family:
+ *               $ref: '#/components/examples/Association_Create_5_CategoryContainsFamily'
  *     responses:
  *       201: { description: Created }
  */

@@ -21,8 +21,16 @@ const router = Router();
  *           schema:
  *             $ref: '#/components/schemas/CategoryCreate'
  *           examples:
- *             default:
- *               $ref: '#/components/examples/Category_Create'
+ *             ex1_minimal:
+ *               $ref: '#/components/examples/Category_Create_1_Minimal'
+ *             ex2_with_parent:
+ *               $ref: '#/components/examples/Category_Create_2_WithParent'
+ *             ex3_no_groups:
+ *               $ref: '#/components/examples/Category_Create_3_NoGroups'
+ *             ex4_empty_groups:
+ *               $ref: '#/components/examples/Category_Create_4_EmptyGroups'
+ *             ex5_two_groups:
+ *               $ref: '#/components/examples/Category_Create_5_TwoGroups'
  *               attributeGroups: { type: array, items: { type: string } }
  *               attributes: { type: object }
  *     responses:

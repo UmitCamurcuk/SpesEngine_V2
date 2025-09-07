@@ -247,8 +247,7 @@ export const setupSwagger = (app: Express) => {
               name: { type: 'string' },
               code: { type: 'string' },
               parent: { $ref: '#/components/schemas/ObjectIdString' },
-              attributeGroups: { type: 'array', items: { $ref: '#/components/schemas/ObjectIdString' } },
-              attributes: { $ref: '#/components/schemas/AttributesMap' }
+              attributeGroups: { type: 'array', items: { $ref: '#/components/schemas/ObjectIdString' } }
             }
           },
           CategoryUpdate: {
@@ -270,8 +269,7 @@ export const setupSwagger = (app: Express) => {
               name: { type: 'string' },
               code: { type: 'string' },
               parent: { $ref: '#/components/schemas/ObjectIdString' },
-              attributeGroups: { type: 'array', items: { $ref: '#/components/schemas/ObjectIdString' } },
-              attributes: { $ref: '#/components/schemas/AttributesMap' }
+              attributeGroups: { type: 'array', items: { $ref: '#/components/schemas/ObjectIdString' } }
             }
           },
           FamilyUpdate: {
@@ -501,64 +499,179 @@ export const setupSwagger = (app: Express) => {
           },
 
           // ItemType / Category / Family / Association / AttributeGroup examples
-          ItemType_Create: {
-            summary: 'ItemType örneği (attributeGroups + attributes)',
+          ItemType_Create_1_Minimal: {
+            summary: 'ItemType minimal',
+            value: { name: 'Ürün', code: 'product' }
+          },
+          ItemType_Create_2_WithDesc: {
+            summary: 'ItemType açıklama ile',
+            value: { name: 'Hizmet', code: 'service', description: 'Hizmet tipi' }
+          },
+          ItemType_Create_3_WithGroups: {
+            summary: 'ItemType attributeGroups ile',
+            value: { name: 'Parça', code: 'part', attributeGroups: ['66e882f3e3a9f3b2a1c4d789'] }
+          },
+          ItemType_Create_4_WithGroupsAndAttrs: {
+            summary: 'ItemType groups + attributes',
             value: {
-              name: 'Ürün',
-              code: 'product',
-              description: 'Ürün tipi',
-              attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
+              name: 'Ürün', code: 'product2', attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
               attributes: { product_name: 'Örnek Ürün', size: 'm', colors: ['red','blue'] }
             }
           },
-          Category_Create: {
-            summary: 'Category örneği',
+          ItemType_Create_5_EmptyGroups: {
+            summary: 'ItemType boş attributeGroups',
+            value: { name: 'Bundle', code: 'bundle', attributeGroups: [] }
+          },
+
+          Category_Create_1_Minimal: {
+            summary: 'Category minimal (parent null, sadece attributeGroups)',
             value: {
               name: 'Giyim',
               code: 'apparel',
               parent: null,
-              attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
-              attributes: { keywords: ['moda','yeni'] }
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d789']
             }
           },
-          Family_Create: {
-            summary: 'Family örneği',
+          Category_Create_2_WithParent: {
+            summary: 'Category parent ile (ItemType için association ayrı örneklerde)',
+            value: {
+              name: 'Erkek Giyim',
+              code: 'mens_apparel',
+              parent: '66e8b2b2b2b2b2b2b2b2b2b2',
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d78a']
+            }
+          },
+          Category_Create_3_NoGroups: {
+            summary: 'Category sadece name/code (grup yok)',
+            value: {
+              name: 'Aksesuar',
+              code: 'accessories'
+            }
+          },
+          Category_Create_4_EmptyGroups: {
+            summary: 'Category boş attributeGroups',
+            value: {
+              name: 'Ayakkabı',
+              code: 'shoes',
+              parent: null,
+              attributeGroups: []
+            }
+          },
+          Category_Create_5_TwoGroups: {
+            summary: 'Category iki attributeGroup ile',
+            value: {
+              name: 'Kışlık Giyim',
+              code: 'winter_apparel',
+              parent: null,
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d789', '66e882f3e3a9f3b2a1c4d78a']
+            }
+          },
+
+          Family_Create_1_Minimal: {
+            summary: 'Family minimal (parent null, sadece attributeGroups)',
             value: {
               name: 'Tişört',
               code: 'tshirt',
               parent: null,
-              attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
-              attributes: { size_table: [ { size:'s', chest: 48, waist: 46 } ] }
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d789']
             }
           },
-          Family_Create_WithParent: {
-            summary: 'Family örneği (parent ile)',
+          Family_Create_2_WithParent: {
+            summary: 'Family parent ile',
             value: {
               name: 'V Yaka Tişört',
               code: 'vneck_tshirt',
               parent: '66e8f1234567890abcdef123',
-              attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
-              attributes: { product_name: 'V Yaka' }
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d789']
             }
           },
-          Association_Create: {
-            summary: 'Association örneği',
+          Family_Create_3_NoGroups: {
+            summary: 'Family sadece name/code',
             value: {
-              fromModel: 'ItemType',
-              fromId: '66e8a1a21a21a1a21a21a1a2',
-              toModel: 'Category',
-              toId: '66e8b2b2b2b2b2b2b2b2b2b2',
-              kind: 'belongs_to',
-              metadata: { confidence: 0.95 }
+              name: 'Sweatshirt',
+              code: 'sweatshirt'
             }
           },
-          AttributeGroup_Create: {
-            summary: 'AttributeGroup örneği',
+          Family_Create_4_EmptyGroups: {
+            summary: 'Family boş attributeGroups',
             value: {
-              name: 'Temel Özellikler',
-              code: 'basic_features',
-              attributes: ['66e8c3c3c3c3c3c3c3c3c3c3','66e8c3c3c3c3c3c3c3c3c3c4']
+              name: 'Mont',
+              code: 'jacket',
+              parent: null,
+              attributeGroups: []
             }
+          },
+          Family_Create_5_TwoGroups: {
+            summary: 'Family iki attributeGroup ile',
+            value: {
+              name: 'Polar',
+              code: 'fleece',
+              parent: null,
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d789', '66e882f3e3a9f3b2a1c4d78a']
+            }
+          },
+
+          Association_Create_1_CategoryToItemType: {
+            summary: 'Category -> ItemType (belongs_to)',
+            value: {
+              fromModel: 'Category', fromId: '66e8b2b2b2b2b2b2b2b2b2b2',
+              toModel: 'ItemType', toId: '66e8a1a21a21a1a21a21a1a2',
+              kind: 'belongs_to'
+            }
+          },
+          Association_Create_2_FamilyToCategory: {
+            summary: 'Family -> Category (belongs_to)',
+            value: {
+              fromModel: 'Family', fromId: '66e8f1234567890abcdef123',
+              toModel: 'Category', toId: '66e8b2b2b2b2b2b2b2b2b2b2',
+              kind: 'belongs_to'
+            }
+          },
+          Association_Create_3_ItemTypeToCategory: {
+            summary: 'ItemType -> Category (supports)',
+            value: {
+              fromModel: 'ItemType', fromId: '66e8a1a21a21a1a21a21a1a2',
+              toModel: 'Category', toId: '66e8b2b2b2b2b2b2b2b2b2b2',
+              kind: 'supports'
+            }
+          },
+          Association_Create_4_FamilyToItemType: {
+            summary: 'Family -> ItemType (compatible_with)',
+            value: {
+              fromModel: 'Family', fromId: '66e8f1234567890abcdef124',
+              toModel: 'ItemType', toId: '66e8a1a21a21a1a21a21a1a3',
+              kind: 'compatible_with'
+            }
+          },
+          Association_Create_5_CategoryContainsFamily: {
+            summary: 'Category -> Family (contains)',
+            value: {
+              fromModel: 'Category', fromId: '66e8b2b2b2b2b2b2b2b2b2b3',
+              toModel: 'Family', toId: '66e8f1234567890abcdef125',
+              kind: 'contains',
+              metadata: { note: 'Kategori bu aileyi içerir' }
+            }
+          },
+
+          AttributeGroup_Create_1_Minimal: {
+            summary: 'AttributeGroup minimal',
+            value: { name: 'Temel Özellikler', code: 'basic_features' }
+          },
+          AttributeGroup_Create_2_WithDesc: {
+            summary: 'AttributeGroup açıklama ile',
+            value: { name: 'Görseller', code: 'media', description: 'Medya alanları' }
+          },
+          AttributeGroup_Create_3_WithAttributes: {
+            summary: 'AttributeGroup attribute idleri ile',
+            value: { name: 'Teknik', code: 'technical', attributes: ['66e8c3c3c3c3c3c3c3c3c3c3','66e8c3c3c3c3c3c3c3c3c3c4'] }
+          },
+          AttributeGroup_Create_4_EmptyAttributes: {
+            summary: 'AttributeGroup boş attributes',
+            value: { name: 'Pazarlama', code: 'marketing', attributes: [] }
+          },
+          AttributeGroup_Create_5_Another: {
+            summary: 'AttributeGroup başka bir örnek',
+            value: { name: 'Lojistik', code: 'logistics' }
           }
         }
       }
