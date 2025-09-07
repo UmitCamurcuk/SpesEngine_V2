@@ -56,7 +56,11 @@ router.post('/', createItemType);
  *         required: true
  *         schema: { type: string }
  *     responses:
- *       200: { description: OK }
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  *       404: { description: Not Found }
  *   patch:
  *     summary: Update item type
@@ -95,7 +99,7 @@ router.post('/', createItemType);
  *         required: true
  *         schema: { type: string }
  *     responses:
- *       204: { description: No Content }
+ *       200: { description: OK }
  *       404: { description: Not Found }
  */
 router.get('/:id', getItemType);

@@ -26,7 +26,11 @@ const router = Router();
  *         name: kind
  *         schema: { type: string }
  *     responses:
- *       200: { description: OK }
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  *   post:
  *     summary: Create association between entities
  *     tags: [Association]

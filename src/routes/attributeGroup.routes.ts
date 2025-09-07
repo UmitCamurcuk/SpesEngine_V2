@@ -10,7 +10,11 @@ const router = Router();
  *     summary: List attribute groups
  *     tags: [AttributeGroup]
  *     responses:
- *       200: { description: OK }
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  *   post:
  *     summary: Create attribute group
  *     tags: [AttributeGroup]

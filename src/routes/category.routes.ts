@@ -10,7 +10,11 @@ const router = Router();
  *     summary: List categories
  *     tags: [Category]
  *     responses:
- *       200: { description: OK }
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  *   post:
  *     summary: Create category
  *     tags: [Category]
@@ -107,7 +111,7 @@ router.get('/tree', getCategoryTree);
  *         required: true
  *         schema: { type: string }
  *     responses:
- *       204: { description: No Content }
+ *       200: { description: OK }
  *       404: { description: Not Found }
  */
 router.get('/:id', getCategory);
