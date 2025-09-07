@@ -69,7 +69,9 @@ export const setupSwagger = (app: Express) => {
               min: { type: 'number' },
               max: { type: 'number' },
               decimals: { type: 'integer', minimum: 0 },
-              step: { type: 'number', minimum: 0 }
+              step: { type: 'number', minimum: 0 },
+              allowNegative: { type: 'boolean', description: 'Varsayılan: true' },
+              allowZero: { type: 'boolean', description: 'Varsayılan: true' }
             }
           },
           AttributeDateLikeConfig: {
@@ -118,7 +120,9 @@ export const setupSwagger = (app: Express) => {
           AttributeArrayConfig: {
             type: 'object',
             properties: {
-              itemType: { type: 'string', description: 'string|number|boolean' }
+              itemType: { type: 'string', description: 'string|number|boolean' },
+              minItems: { type: 'integer', minimum: 0 },
+              maxItems: { type: 'integer', minimum: 0 }
             },
             required: ['itemType']
           },

@@ -14,7 +14,10 @@ export const createFamily = async (req: Request, res: Response) => {
     const cat = await Category.findById(categoryId).lean();
     if (!cat) return sendError(res, { status: 404, code: 'category.not_found', message: 'Category not found' });
   }
-  if (categoryId) delete (req.body as any).categoryId;
+  if (categoryId) {
+    (req.body as any).category = categoryId;
+    delete (req.body as any).categoryId;
+  }
 
   const doc = await Family.create(req.body);
   if (categoryId) {
@@ -24,12 +27,12 @@ export const createFamily = async (req: Request, res: Response) => {
 };
 
 export const listFamilies = async (_req: Request, res: Response) => {
-  const items = await Family.find().sort({ createdAt: -1 });
+  const items = await Family.find().populate('category').sort({ createdAt: -1 });
   return sendSuccess(res, { code: 'family.list', message: 'OK', data: items, meta: { count: items.length } });
 };
 
 export const getFamily = async (req: Request, res: Response) => {
-  const doc = await Family.findById(req.params.id);
+  const doc = await Family.findById(req.params.id).populate('category');
   if (!doc) return sendError(res, { status: 404, code: 'family.not_found', message: 'Family not found' });
   return sendSuccess(res, { code: 'family.get', message: 'OK', data: doc });
 };

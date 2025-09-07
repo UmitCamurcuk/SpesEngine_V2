@@ -54,6 +54,8 @@ export const validateValueForAttribute = (attr: AttributeDoc, value: any) => {
         const diff = Math.abs((value - base) / cfg.step - Math.round((value - base) / cfg.step));
         if (diff > 1e-9) throw err(`${path} not aligned to step`);
       }
+      if (cfg.allowNegative === false && value < 0) throw err(`${path} cannot be negative`);
+      if (cfg.allowZero === false && value === 0) throw err(`${path} cannot be zero`);
       break;
     }
     case AttributeType.BOOLEAN: {
@@ -109,6 +111,8 @@ export const validateValueForAttribute = (attr: AttributeDoc, value: any) => {
           if (it === 'boolean' && !isBoolean(v)) throw err(`${path} items must be boolean`);
         }
       }
+      if (cfg.minItems !== undefined && value.length < cfg.minItems) throw err(`${path} length < minItems`);
+      if (cfg.maxItems !== undefined && value.length > cfg.maxItems) throw err(`${path} length > maxItems`);
       break;
     }
     case AttributeType.JSON: {
@@ -214,4 +218,3 @@ export const validateEntityAttributes = async (options: {
   }
   return normalized;
 };
-

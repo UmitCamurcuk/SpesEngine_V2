@@ -96,6 +96,8 @@ AttributeSchema.pre('validate', function (next) {
         if (cfg.min !== undefined && cfg.max !== undefined) ensure(cfg.max >= cfg.min, 'max must be >= min');
         if (cfg.decimals !== undefined) ensure(Number.isInteger(cfg.decimals) && cfg.decimals >= 0, 'decimals must be non-negative integer');
         if (cfg.step !== undefined) ensure(isNumber(cfg.step) && cfg.step > 0, 'step must be positive number');
+        if (cfg.allowNegative !== undefined) ensure(typeof cfg.allowNegative === 'boolean', 'allowNegative must be boolean');
+        if (cfg.allowZero !== undefined) ensure(typeof cfg.allowZero === 'boolean', 'allowZero must be boolean');
         break;
       }
       case AttributeType.BOOLEAN: {
@@ -136,6 +138,9 @@ AttributeSchema.pre('validate', function (next) {
       }
       case AttributeType.ARRAY: {
         ensure(isString(cfg.itemType), 'itemType is required (string)');
+        if (cfg.minItems !== undefined) ensure(Number.isInteger(cfg.minItems) && cfg.minItems >= 0, 'minItems must be non-negative integer');
+        if (cfg.maxItems !== undefined) ensure(Number.isInteger(cfg.maxItems) && cfg.maxItems >= 0, 'maxItems must be non-negative integer');
+        if (cfg.minItems !== undefined && cfg.maxItems !== undefined) ensure(cfg.maxItems >= cfg.minItems, 'maxItems must be >= minItems');
         break;
       }
       case AttributeType.JSON: {

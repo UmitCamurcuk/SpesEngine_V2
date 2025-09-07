@@ -6,6 +6,7 @@ const FamilySchema = new Schema(
     code: { type: String, required: true, trim: true, unique: true },
     parent: { type: Schema.Types.ObjectId, ref: 'Family', default: null },
     ancestors: [{ type: Schema.Types.ObjectId, ref: 'Family' }],
+    category: { type: Schema.Types.ObjectId, ref: 'Category', default: null },
     attributeGroups: [{ type: Schema.Types.ObjectId, ref: 'AttributeGroup' }],
     attributes: { type: Schema.Types.Mixed, default: {} },
   },

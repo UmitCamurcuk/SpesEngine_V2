@@ -63,11 +63,19 @@ export const createItem = async (req: Request, res: Response) => {
   if (!itemTypeId) return sendError(res, { status: 400, code: 'item.itemtype_required', message: 'itemTypeId is required' });
 
   const it = await ensureExists<any>(ItemType, itemTypeId, 'ItemType', 'itemtype.not_found');
-  const resolvedCategoryId = categoryId || String(it.category);
-  if (!resolvedCategoryId) return sendError(res, { status: 400, code: 'item.category_missing', message: 'Category cannot be resolved from itemType; provide categoryId' });
-  const cat = await ensureExists<any>(Category, resolvedCategoryId, 'Category', 'category.not_found');
+  const enforcedCategoryId = String(it.category);
+  if (!enforcedCategoryId) return sendError(res, { status: 400, code: 'item.category_missing', message: 'ItemType has no category; cannot create item' });
+  if (categoryId && String(categoryId) !== enforcedCategoryId) {
+    return sendError(res, { status: 400, code: 'item.category_mismatch', message: 'categoryId must equal selected itemType\'s category' });
+  }
+  const cat = await ensureExists<any>(Category, enforcedCategoryId, 'Category', 'category.not_found');
   let fam: any = null;
-  if (familyId) fam = await ensureExists<any>(Family, familyId, 'Family', 'family.not_found');
+  if (familyId) {
+    fam = await ensureExists<any>(Family, familyId, 'Family', 'family.not_found');
+    if (!fam.category || String(fam.category) !== enforcedCategoryId) {
+      return sendError(res, { status: 400, code: 'item.family_category_mismatch', message: 'Family must belong to the category enforced by itemType' });
+    }
+  }
 
   // Validate attributes against union of groups
   const groupIds: string[] = [
@@ -77,7 +85,7 @@ export const createItem = async (req: Request, res: Response) => {
   ].map((id: any) => String(id));
   const normalized = await validateEntityAttributes({ attributeGroupIds: groupIds, values: attributes, isUpdate: false });
 
-  const doc = await Item.create({ name, code, itemType: itemTypeId, category: resolvedCategoryId, family: familyId || null, attributes: normalized });
+  const doc = await Item.create({ name, code, itemType: itemTypeId, category: enforcedCategoryId, family: familyId || null, attributes: normalized });
   const populated = await Item.findById(doc._id).populate('itemType').populate('category').populate('family');
   return sendCreated(res, { code: 'item.created', message: 'Item created', data: populated });
 };
@@ -99,11 +107,20 @@ export const updateItem = async (req: Request, res: Response) => {
 
   const nextItemTypeId = (req.body.itemTypeId as string) || String(existing.itemType);
   const it = await ensureExists<any>(ItemType, nextItemTypeId, 'ItemType', 'itemtype.not_found');
-  const nextCategoryId = (req.body.categoryId as string) || String(existing.category) || String(it.category);
-  const cat = await ensureExists<any>(Category, nextCategoryId, 'Category', 'category.not_found');
+  const enforcedCategoryId = String(it.category);
+  if (!enforcedCategoryId) return sendError(res, { status: 400, code: 'item.category_missing', message: 'ItemType has no category; cannot update item' });
+  if (req.body.categoryId && String(req.body.categoryId) !== enforcedCategoryId) {
+    return sendError(res, { status: 400, code: 'item.category_mismatch', message: 'categoryId must equal selected itemType\'s category' });
+  }
+  const cat = await ensureExists<any>(Category, enforcedCategoryId, 'Category', 'category.not_found');
   const nextFamilyId = (req.body.familyId as string) || (existing.family ? String(existing.family) : undefined);
   let fam: any = null;
-  if (nextFamilyId) fam = await ensureExists<any>(Family, nextFamilyId, 'Family', 'family.not_found');
+  if (nextFamilyId) {
+    fam = await ensureExists<any>(Family, nextFamilyId, 'Family', 'family.not_found');
+    if (!fam.category || String(fam.category) !== enforcedCategoryId) {
+      return sendError(res, { status: 400, code: 'item.family_category_mismatch', message: 'Family must belong to the category enforced by itemType' });
+    }
+  }
 
   let normalizedAttributes = existing.attributes as any;
   if (req.body.attributes) {
@@ -122,7 +139,8 @@ export const updateItem = async (req: Request, res: Response) => {
 
   const patch: any = { ...req.body };
   if (req.body.itemTypeId) patch.itemType = req.body.itemTypeId;
-  if (req.body.categoryId) patch.category = req.body.categoryId;
+  // Always enforce category from itemType
+  patch.category = enforcedCategoryId;
   if (req.body.familyId !== undefined) patch.family = req.body.familyId;
   if (req.body.attributes) patch.attributes = normalizedAttributes;
 
@@ -136,4 +154,3 @@ export const deleteItem = async (req: Request, res: Response) => {
   if (!doc) return sendError(res, { status: 404, code: 'item.not_found', message: 'Item not found' });
   return sendSuccess(res, { code: 'item.deleted', message: 'Item deleted', data: { id: doc._id } });
 };
-
