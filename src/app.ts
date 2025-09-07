@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import routes from './routes';
 import { errorHandler, notFound } from './middleware/error';
+import { sendSuccess } from './utils/response';
 import { setupSwagger } from './swagger';
 
 export const createApp = () => {
@@ -13,7 +14,7 @@ export const createApp = () => {
   app.use(helmet());
   app.use(morgan('dev'));
 
-  app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+  app.get('/health', (_req, res) => sendSuccess(res, { code: 'health.ok', message: 'OK', data: { status: 'ok' } }));
 
   app.use('/api', routes);
   setupSwagger(app);
@@ -23,4 +24,3 @@ export const createApp = () => {
 
   return app;
 };
-
