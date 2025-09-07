@@ -1,12 +1,24 @@
 import { Request, Response } from 'express';
 import { Family } from '../models/Family';
+import { Category } from '../models/Category';
+import { Association } from '../models/Association';
 import { validateEntityAttributes } from '../utils/attributeValidation';
 
 export const createFamily = async (req: Request, res: Response) => {
   if (Object.prototype.hasOwnProperty.call(req.body, 'attributes')) {
     return res.status(400).json({ message: 'Attributes cannot be provided on create. Provide only attributeGroups; set attributes via PATCH.' });
   }
+  const { categoryId } = req.body as { categoryId?: string };
+  if (categoryId) {
+    const cat = await Category.findById(categoryId).lean();
+    if (!cat) return res.status(404).json({ message: 'Category not found' });
+  }
+  if (categoryId) delete (req.body as any).categoryId;
+
   const doc = await Family.create(req.body);
+  if (categoryId) {
+    await Association.create({ fromModel: 'Family', fromId: doc._id, toModel: 'Category', toId: categoryId, kind: 'belongs_to' });
+  }
   res.status(201).json(doc);
 };
 

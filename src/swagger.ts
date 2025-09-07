@@ -219,11 +219,12 @@ export const setupSwagger = (app: Express) => {
           // ItemType
           ItemTypeCreate: {
             type: 'object',
-            required: ['name','code'],
+            required: ['name','code','categoryId'],
             properties: {
               name: { type: 'string' },
               code: { type: 'string' },
               description: { type: 'string' },
+              categoryId: { $ref: '#/components/schemas/ObjectIdString' },
               attributeGroups: { type: 'array', items: { $ref: '#/components/schemas/ObjectIdString' } },
               attributes: { $ref: '#/components/schemas/AttributesMap' }
             }
@@ -247,6 +248,7 @@ export const setupSwagger = (app: Express) => {
               name: { type: 'string' },
               code: { type: 'string' },
               parent: { $ref: '#/components/schemas/ObjectIdString' },
+              itemTypeId: { $ref: '#/components/schemas/ObjectIdString', description: 'Opsiyonel: create sırasında ItemType ile bağla' },
               attributeGroups: { type: 'array', items: { $ref: '#/components/schemas/ObjectIdString' } }
             }
           },
@@ -269,6 +271,7 @@ export const setupSwagger = (app: Express) => {
               name: { type: 'string' },
               code: { type: 'string' },
               parent: { $ref: '#/components/schemas/ObjectIdString' },
+              categoryId: { $ref: '#/components/schemas/ObjectIdString', description: 'Opsiyonel: create sırasında Category ile bağla' },
               attributeGroups: { type: 'array', items: { $ref: '#/components/schemas/ObjectIdString' } }
             }
           },
@@ -501,26 +504,26 @@ export const setupSwagger = (app: Express) => {
           // ItemType / Category / Family / Association / AttributeGroup examples
           ItemType_Create_1_Minimal: {
             summary: 'ItemType minimal',
-            value: { name: 'Ürün', code: 'product' }
+            value: { name: 'Ürün', code: 'product', categoryId: '66e8b2b2b2b2b2b2b2b2b2b2' }
           },
           ItemType_Create_2_WithDesc: {
             summary: 'ItemType açıklama ile',
-            value: { name: 'Hizmet', code: 'service', description: 'Hizmet tipi' }
+            value: { name: 'Hizmet', code: 'service', description: 'Hizmet tipi', categoryId: '66e8b2b2b2b2b2b2b2b2b2b2' }
           },
           ItemType_Create_3_WithGroups: {
             summary: 'ItemType attributeGroups ile',
-            value: { name: 'Parça', code: 'part', attributeGroups: ['66e882f3e3a9f3b2a1c4d789'] }
+            value: { name: 'Parça', code: 'part', categoryId: '66e8b2b2b2b2b2b2b2b2b2b2', attributeGroups: ['66e882f3e3a9f3b2a1c4d789'] }
           },
           ItemType_Create_4_WithGroupsAndAttrs: {
             summary: 'ItemType groups + attributes',
             value: {
-              name: 'Ürün', code: 'product2', attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
+              name: 'Ürün', code: 'product2', categoryId: '66e8b2b2b2b2b2b2b2b2b2b2', attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
               attributes: { product_name: 'Örnek Ürün', size: 'm', colors: ['red','blue'] }
             }
           },
           ItemType_Create_5_EmptyGroups: {
             summary: 'ItemType boş attributeGroups',
-            value: { name: 'Bundle', code: 'bundle', attributeGroups: [] }
+            value: { name: 'Bundle', code: 'bundle', categoryId: '66e8b2b2b2b2b2b2b2b2b2b2', attributeGroups: [] }
           },
 
           Category_Create_1_Minimal: {
@@ -538,7 +541,8 @@ export const setupSwagger = (app: Express) => {
               name: 'Erkek Giyim',
               code: 'mens_apparel',
               parent: '66e8b2b2b2b2b2b2b2b2b2b2',
-              attributeGroups: ['66e882f3e3a9f3b2a1c4d78a']
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d78a'],
+              itemTypeId: '66e8a1a21a21a1a21a21a1a2'
             }
           },
           Category_Create_3_NoGroups: {
@@ -563,7 +567,8 @@ export const setupSwagger = (app: Express) => {
               name: 'Kışlık Giyim',
               code: 'winter_apparel',
               parent: null,
-              attributeGroups: ['66e882f3e3a9f3b2a1c4d789', '66e882f3e3a9f3b2a1c4d78a']
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d789', '66e882f3e3a9f3b2a1c4d78a'],
+              itemTypeId: '66e8a1a21a21a1a21a21a1a3'
             }
           },
 
@@ -573,7 +578,8 @@ export const setupSwagger = (app: Express) => {
               name: 'Tişört',
               code: 'tshirt',
               parent: null,
-              attributeGroups: ['66e882f3e3a9f3b2a1c4d789']
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
+              categoryId: '66e8b2b2b2b2b2b2b2b2b2b2'
             }
           },
           Family_Create_2_WithParent: {
@@ -582,7 +588,8 @@ export const setupSwagger = (app: Express) => {
               name: 'V Yaka Tişört',
               code: 'vneck_tshirt',
               parent: '66e8f1234567890abcdef123',
-              attributeGroups: ['66e882f3e3a9f3b2a1c4d789']
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
+              categoryId: '66e8b2b2b2b2b2b2b2b2b2b2'
             }
           },
           Family_Create_3_NoGroups: {

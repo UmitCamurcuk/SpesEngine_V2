@@ -1,14 +1,27 @@
 import { Request, Response } from 'express';
 import { ItemType } from '../models/ItemType';
+import { Category } from '../models/Category';
+import { Association } from '../models/Association';
 import { validateEntityAttributes } from '../utils/attributeValidation';
 
 export const createItemType = async (req: Request, res: Response) => {
+  const { categoryId } = req.body as { categoryId?: string };
+  if (!categoryId || typeof categoryId !== 'string') {
+    return res.status(400).json({ message: 'categoryId is required and must be a string' });
+  }
+  const category = await Category.findById(categoryId).lean();
+  if (!category) return res.status(404).json({ message: 'Category not found' });
+
   if (req.body.attributes || req.body.attributeGroups) {
     const groupIds: string[] = req.body.attributeGroups || [];
     const normalized = await validateEntityAttributes({ attributeGroupIds: groupIds, values: req.body.attributes, isUpdate: false });
     req.body.attributes = normalized;
   }
+  // Remove linkage helper field from payload to avoid persisting unknown field
+  delete (req.body as any).categoryId;
+
   const doc = await ItemType.create(req.body);
+  await Association.create({ fromModel: 'ItemType', fromId: doc._id, toModel: 'Category', toId: categoryId, kind: 'belongs_to' });
   res.status(201).json(doc);
 };
 

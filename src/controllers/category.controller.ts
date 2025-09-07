@@ -1,12 +1,25 @@
 import { Request, Response } from 'express';
 import { Category } from '../models/Category';
+import { ItemType } from '../models/ItemType';
+import { Association } from '../models/Association';
 import { validateEntityAttributes } from '../utils/attributeValidation';
 
 export const createCategory = async (req: Request, res: Response) => {
   if (Object.prototype.hasOwnProperty.call(req.body, 'attributes')) {
     return res.status(400).json({ message: 'Attributes cannot be provided on create. Provide only attributeGroups; set attributes via PATCH.' });
   }
+  const { itemTypeId } = req.body as { itemTypeId?: string };
+  if (itemTypeId) {
+    const it = await ItemType.findById(itemTypeId).lean();
+    if (!it) return res.status(404).json({ message: 'ItemType not found' });
+  }
+  // Clean helper field from payload
+  if (itemTypeId) delete (req.body as any).itemTypeId;
+
   const doc = await Category.create(req.body);
+  if (itemTypeId) {
+    await Association.create({ fromModel: 'Category', fromId: doc._id, toModel: 'ItemType', toId: itemTypeId, kind: 'belongs_to' });
+  }
   res.status(201).json(doc);
 };
 
