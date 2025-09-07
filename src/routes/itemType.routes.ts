@@ -20,12 +20,10 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [name, code]
- *             properties:
- *               name: { type: string }
- *               code: { type: string }
- *               description: { type: string }
+ *             $ref: '#/components/schemas/ItemTypeCreate'
+ *           examples:
+ *             default:
+ *               $ref: '#/components/examples/ItemType_Create'
  *               attributeGroups: { type: array, items: { type: string } }
  *               attributes: { type: object }
  *     responses:
@@ -61,7 +59,8 @@ router.post('/', createItemType);
  *       required: true
  *       content:
  *         application/json:
- *           schema: { type: object }
+ *           schema:
+ *             $ref: '#/components/schemas/ItemTypeUpdate'
  *     responses:
  *       200: { description: OK }
  *       404: { description: Not Found }

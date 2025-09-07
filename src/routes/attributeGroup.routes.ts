@@ -19,13 +19,10 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [name, code]
- *             properties:
- *               name: { type: string }
- *               code: { type: string }
- *               description: { type: string }
- *               attributes: { type: array, items: { type: string } }
+ *             $ref: '#/components/schemas/AttributeGroupCreate'
+ *           examples:
+ *             default:
+ *               $ref: '#/components/examples/AttributeGroup_Create'
  *     responses:
  *       201: { description: Created }
  */
@@ -58,7 +55,8 @@ router.post('/', createAttributeGroup);
  *       required: true
  *       content:
  *         application/json:
- *           schema: { type: object }
+ *           schema:
+ *             $ref: '#/components/schemas/AttributeGroupUpdate'
  *     responses:
  *       200: { description: OK }
  *       404: { description: Not Found }
@@ -79,4 +77,3 @@ router.patch('/:id', updateAttributeGroup);
 router.delete('/:id', deleteAttributeGroup);
 
 export default router;
-

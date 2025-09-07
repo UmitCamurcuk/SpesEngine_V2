@@ -19,16 +19,46 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [name, code, type]
- *             properties:
- *               name: { type: string }
- *               code: { type: string }
- *               description: { type: string }
- *               type: { type: string }
- *               required: { type: boolean }
- *               defaultValue: { }
- *               config: { type: object }
+ *             $ref: '#/components/schemas/AttributeCreate'
+ *           examples:
+ *             text:
+ *               $ref: '#/components/examples/Attribute_Text'
+ *             number:
+ *               $ref: '#/components/examples/Attribute_Number'
+ *             select:
+ *               $ref: '#/components/examples/Attribute_Select'
+ *             multiselect:
+ *               $ref: '#/components/examples/Attribute_MultiSelect'
+ *             file:
+ *               $ref: '#/components/examples/Attribute_File'
+ *             image:
+ *               $ref: '#/components/examples/Attribute_Image'
+ *             attachment:
+ *               $ref: '#/components/examples/Attribute_Attachment'
+ *             object:
+ *               $ref: '#/components/examples/Attribute_Object'
+ *             array:
+ *               $ref: '#/components/examples/Attribute_Array'
+ *             json:
+ *               $ref: '#/components/examples/Attribute_JSON'
+ *             formula:
+ *               $ref: '#/components/examples/Attribute_Formula'
+ *             expression:
+ *               $ref: '#/components/examples/Attribute_Expression'
+ *             table:
+ *               $ref: '#/components/examples/Attribute_Table'
+ *             color:
+ *               $ref: '#/components/examples/Attribute_Color'
+ *             rich_text:
+ *               $ref: '#/components/examples/Attribute_RichText'
+ *             rating:
+ *               $ref: '#/components/examples/Attribute_Rating'
+ *             barcode:
+ *               $ref: '#/components/examples/Attribute_Barcode'
+ *             qr:
+ *               $ref: '#/components/examples/Attribute_QR'
+ *             readonly:
+ *               $ref: '#/components/examples/Attribute_Readonly'
  *     responses:
  *       201: { description: Created }
  */
@@ -82,4 +112,3 @@ router.patch('/:id', updateAttribute);
 router.delete('/:id', deleteAttribute);
 
 export default router;
-

@@ -12,13 +12,13 @@ const router = Router();
  *     parameters:
  *       - in: query
  *         name: fromModel
- *         schema: { type: string, enum: [ItemType, Category, Family] }
+ *         schema: { $ref: '#/components/schemas/EntityModel' }
  *       - in: query
  *         name: fromId
  *         schema: { type: string }
  *       - in: query
  *         name: toModel
- *         schema: { type: string, enum: [ItemType, Category, Family] }
+ *         schema: { $ref: '#/components/schemas/EntityModel' }
  *       - in: query
  *         name: toId
  *         schema: { type: string }
@@ -35,15 +35,10 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [fromModel, fromId, toModel, toId]
- *             properties:
- *               fromModel: { type: string, enum: [ItemType, Category, Family] }
- *               fromId: { type: string }
- *               toModel: { type: string, enum: [ItemType, Category, Family] }
- *               toId: { type: string }
- *               kind: { type: string }
- *               metadata: { type: object }
+ *             $ref: '#/components/schemas/AssociationCreate'
+ *           examples:
+ *             default:
+ *               $ref: '#/components/examples/Association_Create'
  *     responses:
  *       201: { description: Created }
  */
@@ -80,4 +75,3 @@ router.get('/:id', getAssociation);
 router.delete('/:id', deleteAssociation);
 
 export default router;
-

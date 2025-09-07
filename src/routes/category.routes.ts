@@ -19,12 +19,10 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [name, code]
- *             properties:
- *               name: { type: string }
- *               code: { type: string }
- *               parent: { type: string, nullable: true }
+ *             $ref: '#/components/schemas/CategoryCreate'
+ *           examples:
+ *             default:
+ *               $ref: '#/components/examples/Category_Create'
  *               attributeGroups: { type: array, items: { type: string } }
  *               attributes: { type: object }
  *     responses:
@@ -70,7 +68,8 @@ router.get('/tree', getCategoryTree);
  *       required: true
  *       content:
  *         application/json:
- *           schema: { type: object }
+ *           schema:
+ *             $ref: '#/components/schemas/CategoryUpdate'
  *     responses:
  *       200: { description: OK }
  *       404: { description: Not Found }
