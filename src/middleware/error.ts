@@ -2,8 +2,8 @@ import type { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import { sendError } from '../utils/response';
 
-export const notFound = (req: Request, res: Response) => {
-  res.status(404).json({ message: 'Not Found' });
+export const notFound = (_req: Request, res: Response) => {
+  return sendError(res, { status: 404, code: 'not_found', message: 'Not Found' });
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
