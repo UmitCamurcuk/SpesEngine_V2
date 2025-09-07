@@ -1,32 +1,32 @@
 import { Request, Response } from 'express';
 import { AttributeGroup } from '../models/AttributeGroup';
+import { sendCreated, sendError, sendSuccess } from '../utils/response';
 
 export const createAttributeGroup = async (req: Request, res: Response) => {
   const doc = await AttributeGroup.create(req.body);
-  res.status(201).json(doc);
+  return sendCreated(res, { code: 'attribute_group.created', message: 'AttributeGroup created', data: doc });
 };
 
 export const listAttributeGroups = async (_req: Request, res: Response) => {
   const items = await AttributeGroup.find().populate('attributes').sort({ createdAt: -1 });
-  res.json(items);
+  return sendSuccess(res, { code: 'attribute_group.list', message: 'OK', data: items, meta: { count: items.length } });
 };
 
 export const getAttributeGroup = async (req: Request, res: Response) => {
   const doc = await AttributeGroup.findById(req.params.id).populate('attributes');
-  if (!doc) return res.status(404).json({ message: 'AttributeGroup not found' });
-  res.json(doc);
+  if (!doc) return sendError(res, { status: 404, code: 'attribute_group.not_found', message: 'AttributeGroup not found' });
+  return sendSuccess(res, { code: 'attribute_group.get', message: 'OK', data: doc });
 };
 
 export const updateAttributeGroup = async (req: Request, res: Response) => {
   const doc = await AttributeGroup.findByIdAndUpdate(req.params.id, req.body, { new: true })
     .populate('attributes');
-  if (!doc) return res.status(404).json({ message: 'AttributeGroup not found' });
-  res.json(doc);
+  if (!doc) return sendError(res, { status: 404, code: 'attribute_group.not_found', message: 'AttributeGroup not found' });
+  return sendSuccess(res, { code: 'attribute_group.updated', message: 'AttributeGroup updated', data: doc });
 };
 
 export const deleteAttributeGroup = async (req: Request, res: Response) => {
   const doc = await AttributeGroup.findByIdAndDelete(req.params.id);
-  if (!doc) return res.status(404).json({ message: 'AttributeGroup not found' });
-  res.status(204).send();
+  if (!doc) return sendError(res, { status: 404, code: 'attribute_group.not_found', message: 'AttributeGroup not found' });
+  return sendSuccess(res, { code: 'attribute_group.deleted', message: 'AttributeGroup deleted', data: { id: doc._id } });
 };
-

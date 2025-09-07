@@ -48,7 +48,11 @@ const router = Router();
  *             ex5_category_contains_family:
  *               $ref: '#/components/examples/Association_Create_5_CategoryContainsFamily'
  *     responses:
- *       201: { description: Created }
+ *       201:
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
 router.get('/', listAssociations);
 router.post('/', createAssociation);
@@ -76,7 +80,7 @@ router.post('/', createAssociation);
  *         required: true
  *         schema: { type: string }
  *     responses:
- *       204: { description: No Content }
+ *       200: { description: OK }
  *       404: { description: Not Found }
  */
 router.get('/:id', getAssociation);

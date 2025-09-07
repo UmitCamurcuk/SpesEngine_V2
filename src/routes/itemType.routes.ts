@@ -37,6 +37,9 @@ const router = Router();
  *     responses:
  *       201:
  *         description: Created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
 router.get('/', listItemTypes);
 router.post('/', createItemType);
@@ -69,8 +72,19 @@ router.post('/', createItemType);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/ItemTypeUpdate'
+ *           examples:
+ *             update_name:
+ *               value: { name: 'Yeni Ürün Adı' }
+ *             update_groups:
+ *               value: { attributeGroups: ['66e8...a1'] }
+ *             update_attributes:
+ *               value: { attributes: { product_name: 'Güncel Ürün', size: 'l' } }
  *     responses:
- *       200: { description: OK }
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  *       404: { description: Not Found }
  *   delete:
  *     summary: Delete item type

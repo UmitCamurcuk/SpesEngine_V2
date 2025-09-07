@@ -32,7 +32,11 @@ const router = Router();
  *             ex5_another:
  *               $ref: '#/components/examples/AttributeGroup_Create_5_Another'
  *     responses:
- *       201: { description: Created }
+ *       201:
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
 router.get('/', listAttributeGroups);
 router.post('/', createAttributeGroup);
@@ -65,8 +69,17 @@ router.post('/', createAttributeGroup);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/AttributeGroupUpdate'
+ *           examples:
+ *             rename:
+ *               value: { name: 'Yeni Grup Adı' }
+ *             change_attributes:
+ *               value: { attributes: ['66e8...a1','66e8...a2'] }
  *     responses:
- *       200: { description: OK }
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  *       404: { description: Not Found }
  *   delete:
  *     summary: Delete attribute group
@@ -77,7 +90,7 @@ router.post('/', createAttributeGroup);
  *         required: true
  *         schema: { type: string }
  *     responses:
- *       204: { description: No Content }
+ *       200: { description: OK }
  *       404: { description: Not Found }
  */
 router.get('/:id', getAttributeGroup);

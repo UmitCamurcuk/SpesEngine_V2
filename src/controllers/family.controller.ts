@@ -3,15 +3,16 @@ import { Family } from '../models/Family';
 import { Category } from '../models/Category';
 import { Association } from '../models/Association';
 import { validateEntityAttributes } from '../utils/attributeValidation';
+import { sendCreated, sendError, sendSuccess } from '../utils/response';
 
 export const createFamily = async (req: Request, res: Response) => {
   if (Object.prototype.hasOwnProperty.call(req.body, 'attributes')) {
-    return res.status(400).json({ message: 'Attributes cannot be provided on create. Provide only attributeGroups; set attributes via PATCH.' });
+    return sendError(res, { status: 400, code: 'family.attributes_on_create', message: 'Attributes cannot be provided on create. Provide only attributeGroups; set attributes via PATCH.' });
   }
   const { categoryId } = req.body as { categoryId?: string };
   if (categoryId) {
     const cat = await Category.findById(categoryId).lean();
-    if (!cat) return res.status(404).json({ message: 'Category not found' });
+    if (!cat) return sendError(res, { status: 404, code: 'category.not_found', message: 'Category not found' });
   }
   if (categoryId) delete (req.body as any).categoryId;
 
@@ -19,23 +20,23 @@ export const createFamily = async (req: Request, res: Response) => {
   if (categoryId) {
     await Association.create({ fromModel: 'Family', fromId: doc._id, toModel: 'Category', toId: categoryId, kind: 'belongs_to' });
   }
-  res.status(201).json(doc);
+  return sendCreated(res, { code: 'family.created', message: 'Family created', data: doc });
 };
 
 export const listFamilies = async (_req: Request, res: Response) => {
   const items = await Family.find().sort({ createdAt: -1 });
-  res.json(items);
+  return sendSuccess(res, { code: 'family.list', message: 'OK', data: items, meta: { count: items.length } });
 };
 
 export const getFamily = async (req: Request, res: Response) => {
   const doc = await Family.findById(req.params.id);
-  if (!doc) return res.status(404).json({ message: 'Family not found' });
-  res.json(doc);
+  if (!doc) return sendError(res, { status: 404, code: 'family.not_found', message: 'Family not found' });
+  return sendSuccess(res, { code: 'family.get', message: 'OK', data: doc });
 };
 
 export const updateFamily = async (req: Request, res: Response) => {
   const existing = await Family.findById(req.params.id);
-  if (!existing) return res.status(404).json({ message: 'Family not found' });
+  if (!existing) return sendError(res, { status: 404, code: 'family.not_found', message: 'Family not found' });
   if (req.body.attributes || req.body.attributeGroups) {
     const groupIds: string[] = req.body.attributeGroups || (existing.get('attributeGroups') as any) || [];
     const normalized = await validateEntityAttributes({
@@ -47,13 +48,13 @@ export const updateFamily = async (req: Request, res: Response) => {
     req.body.attributes = normalized;
   }
   const updated = await Family.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
+  return sendSuccess(res, { code: 'family.updated', message: 'Family updated', data: updated });
 };
 
 export const deleteFamily = async (req: Request, res: Response) => {
   const doc = await Family.findByIdAndDelete(req.params.id);
-  if (!doc) return res.status(404).json({ message: 'Family not found' });
-  res.status(204).send();
+  if (!doc) return sendError(res, { status: 404, code: 'family.not_found', message: 'Family not found' });
+  return sendSuccess(res, { code: 'family.deleted', message: 'Family deleted', data: { id: doc._id } });
 };
 
 export const getFamilyTree = async (_req: Request, res: Response) => {
@@ -69,5 +70,6 @@ export const getFamilyTree = async (_req: Request, res: Response) => {
     const children = byParent.get(key) || [];
     return children.map((f) => ({ ...f, children: build(String(f._id)) }));
   };
-  res.json(build(null));
+  const tree = build(null);
+  return sendSuccess(res, { code: 'family.tree', message: 'OK', data: tree, meta: { count: families.length } });
 };

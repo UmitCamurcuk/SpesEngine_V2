@@ -2,16 +2,17 @@ import { Request, Response } from 'express';
 import { Category } from '../models/Category';
 import { ItemType } from '../models/ItemType';
 import { Association } from '../models/Association';
+import { sendCreated, sendError, sendSuccess } from '../utils/response';
 import { validateEntityAttributes } from '../utils/attributeValidation';
 
 export const createCategory = async (req: Request, res: Response) => {
   if (Object.prototype.hasOwnProperty.call(req.body, 'attributes')) {
-    return res.status(400).json({ message: 'Attributes cannot be provided on create. Provide only attributeGroups; set attributes via PATCH.' });
+    return sendError(res, { status: 400, code: 'category.attributes_on_create', message: 'Attributes cannot be provided on create. Provide only attributeGroups; set attributes via PATCH.' });
   }
   const { itemTypeId } = req.body as { itemTypeId?: string };
   if (itemTypeId) {
     const it = await ItemType.findById(itemTypeId).lean();
-    if (!it) return res.status(404).json({ message: 'ItemType not found' });
+    if (!it) return sendError(res, { status: 404, code: 'itemtype.not_found', message: 'ItemType not found' });
   }
   // Clean helper field from payload
   if (itemTypeId) delete (req.body as any).itemTypeId;
@@ -20,23 +21,23 @@ export const createCategory = async (req: Request, res: Response) => {
   if (itemTypeId) {
     await Association.create({ fromModel: 'Category', fromId: doc._id, toModel: 'ItemType', toId: itemTypeId, kind: 'belongs_to' });
   }
-  res.status(201).json(doc);
+  return sendCreated(res, { code: 'category.created', message: 'Category created', data: doc });
 };
 
 export const listCategories = async (_req: Request, res: Response) => {
   const items = await Category.find().sort({ createdAt: -1 });
-  res.json(items);
+  return sendSuccess(res, { code: 'category.list', message: 'OK', data: items, meta: { count: items.length } });
 };
 
 export const getCategory = async (req: Request, res: Response) => {
   const doc = await Category.findById(req.params.id);
-  if (!doc) return res.status(404).json({ message: 'Category not found' });
-  res.json(doc);
+  if (!doc) return sendError(res, { status: 404, code: 'category.not_found', message: 'Category not found' });
+  return sendSuccess(res, { code: 'category.get', message: 'OK', data: doc });
 };
 
 export const updateCategory = async (req: Request, res: Response) => {
   const existing = await Category.findById(req.params.id);
-  if (!existing) return res.status(404).json({ message: 'Category not found' });
+  if (!existing) return sendError(res, { status: 404, code: 'category.not_found', message: 'Category not found' });
   if (req.body.attributes || req.body.attributeGroups) {
     const groupIds: string[] = req.body.attributeGroups || (existing.get('attributeGroups') as any) || [];
     const normalized = await validateEntityAttributes({
@@ -48,13 +49,13 @@ export const updateCategory = async (req: Request, res: Response) => {
     req.body.attributes = normalized;
   }
   const updated = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
+  return sendSuccess(res, { code: 'category.updated', message: 'Category updated', data: updated });
 };
 
 export const deleteCategory = async (req: Request, res: Response) => {
   const doc = await Category.findByIdAndDelete(req.params.id);
-  if (!doc) return res.status(404).json({ message: 'Category not found' });
-  res.status(204).send();
+  if (!doc) return sendError(res, { status: 404, code: 'category.not_found', message: 'Category not found' });
+  return sendSuccess(res, { code: 'category.deleted', message: 'Category deleted', data: { id: doc._id } });
 };
 
 export const getCategoryTree = async (_req: Request, res: Response) => {
@@ -70,5 +71,6 @@ export const getCategoryTree = async (_req: Request, res: Response) => {
     const children = byParent.get(key) || [];
     return children.map((c) => ({ ...c, children: build(String(c._id)) }));
   };
-  res.json(build(null));
+  const tree = build(null);
+  return sendSuccess(res, { code: 'category.tree', message: 'OK', data: tree, meta: { count: categories.length } });
 };

@@ -22,6 +22,19 @@ export const setupSwagger = (app: Express) => {
       ],
       components: {
         schemas: {
+          ApiResponse: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              status: { type: 'integer' },
+              code: { type: 'string' },
+              message: { type: 'string' },
+              data: { description: 'İşlem sonucu veri' },
+              meta: { type: 'object', additionalProperties: true },
+              details: { description: 'Hata detayları' },
+              errors: { type: 'array', items: { type: 'object', properties: { field: { type: 'string' }, code: { type: 'string' }, message: { type: 'string' } } } }
+            }
+          },
           AttributeType: {
             type: 'string',
             description: 'Attribute türü',
@@ -322,6 +335,19 @@ export const setupSwagger = (app: Express) => {
           }
         },
         examples: {
+          // Generic response examples
+          Resp_Success_Create: {
+            summary: 'Başarılı oluşturma yanıtı',
+            value: { success: true, status: 201, code: 'resource.created', message: 'Created', data: { _id: '66e8...', name: '...' } }
+          },
+          Resp_Success_Get: {
+            summary: 'Başarılı get yanıtı',
+            value: { success: true, status: 200, code: 'resource.get', message: 'OK', data: { _id: '66e8...' } }
+          },
+          Resp_Error_NotFound: {
+            summary: 'Bulunamadı hatası',
+            value: { success: false, status: 404, code: 'resource.not_found', message: 'Not Found' }
+          },
           Attribute_Text: {
             summary: 'TEXT - min/max/pattern',
             value: {

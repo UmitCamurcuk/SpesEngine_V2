@@ -34,7 +34,11 @@ const router = Router();
  *               attributeGroups: { type: array, items: { type: string } }
  *               attributes: { type: object }
  *     responses:
- *       201: { description: Created }
+ *       201:
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
 router.get('/', listCategories);
 router.post('/', createCategory);
@@ -78,8 +82,21 @@ router.get('/tree', getCategoryTree);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/CategoryUpdate'
+ *           examples:
+ *             rename:
+ *               value: { name: 'Yeni Kategori Adı' }
+ *             reparent:
+ *               value: { parent: '66e8...b2' }
+ *             groups_update:
+ *               value: { attributeGroups: ['66e8...01','66e8...02'] }
+ *             attributes_update:
+ *               value: { attributes: { keywords: ['trend','2025'] } }
  *     responses:
- *       200: { description: OK }
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  *       404: { description: Not Found }
  *   delete:
  *     summary: Delete category

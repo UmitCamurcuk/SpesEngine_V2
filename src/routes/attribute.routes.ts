@@ -60,7 +60,11 @@ const router = Router();
  *             readonly:
  *               $ref: '#/components/examples/Attribute_Readonly'
  *     responses:
- *       201: { description: Created }
+ *       201:
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
 router.get('/', listAttributes);
 router.post('/', createAttribute);
@@ -92,8 +96,19 @@ router.post('/', createAttribute);
  *       content:
  *         application/json:
  *           schema: { type: object }
+ *           examples:
+ *             rename:
+ *               value: { name: 'Yeni Attribute Adı' }
+ *             change_config_text:
+ *               value: { config: { minLength: 2, maxLength: 255 } }
+ *             deactivate:
+ *               value: { active: false }
  *     responses:
- *       200: { description: OK }
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  *       404: { description: Not Found }
  *   delete:
  *     summary: Delete attribute

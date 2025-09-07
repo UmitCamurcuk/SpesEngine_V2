@@ -31,10 +31,12 @@ const router = Router();
  *               $ref: '#/components/examples/Family_Create_4_EmptyGroups'
  *             ex5_two_groups:
  *               $ref: '#/components/examples/Family_Create_5_TwoGroups'
- *               attributeGroups: { type: array, items: { type: string } }
- *               attributes: { type: object }
  *     responses:
- *       201: { description: Created }
+ *       201:
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
 router.get('/', listFamilies);
 router.post('/', createFamily);
@@ -78,8 +80,21 @@ router.get('/tree', getFamilyTree);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/FamilyUpdate'
+ *           examples:
+ *             rename:
+ *               value: { name: 'Yeni Family Adı' }
+ *             reparent:
+ *               value: { parent: '66e8...f1' }
+ *             groups_update:
+ *               value: { attributeGroups: ['66e8...g1','66e8...g2'] }
+ *             attributes_update:
+ *               value: { attributes: { size_table: [{ size:'m', chest: 52, waist: 50 }] } }
  *     responses:
- *       200: { description: OK }
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiResponse' }
  *       404: { description: Not Found }
  *   delete:
  *     summary: Delete family
@@ -90,7 +105,7 @@ router.get('/tree', getFamilyTree);
  *         required: true
  *         schema: { type: string }
  *     responses:
- *       204: { description: No Content }
+ *       200: { description: OK }
  *       404: { description: Not Found }
  */
 router.get('/:id', getFamily);
