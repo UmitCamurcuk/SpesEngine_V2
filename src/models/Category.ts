@@ -6,6 +6,7 @@ const CategorySchema = new Schema(
     code: { type: String, required: true, trim: true, unique: true },
     parent: { type: Schema.Types.ObjectId, ref: 'Category', default: null },
     ancestors: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
+    itemType: { type: Schema.Types.ObjectId, ref: 'ItemType', default: null },
     attributeGroups: [{ type: Schema.Types.ObjectId, ref: 'AttributeGroup' }],
     attributes: { type: Schema.Types.Mixed, default: {} },
   },

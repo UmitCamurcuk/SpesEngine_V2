@@ -19,6 +19,7 @@ export const setupSwagger = (app: Express) => {
         { name: 'Association' },
         { name: 'Attribute' },
         { name: 'AttributeGroup' },
+        { name: 'Item' },
       ],
       components: {
         schemas: {
@@ -332,7 +333,32 @@ export const setupSwagger = (app: Express) => {
               description: { type: 'string' },
               attributes: { type: 'array', items: { $ref: '#/components/schemas/ObjectIdString' } }
             }
-          }
+          },
+
+          // Item
+          ItemCreate: {
+            type: 'object',
+            required: ['name','code','itemTypeId'],
+            properties: {
+              name: { type: 'string' },
+              code: { type: 'string' },
+              itemTypeId: { $ref: '#/components/schemas/ObjectIdString' },
+              categoryId: { $ref: '#/components/schemas/ObjectIdString', description: 'Opsiyonel; verilmezse itemType.category kullanılır' },
+              familyId: { $ref: '#/components/schemas/ObjectIdString' },
+              attributes: { $ref: '#/components/schemas/AttributesMap' }
+            }
+          },
+          ItemUpdate: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              code: { type: 'string' },
+              itemTypeId: { $ref: '#/components/schemas/ObjectIdString' },
+              categoryId: { $ref: '#/components/schemas/ObjectIdString' },
+              familyId: { $ref: '#/components/schemas/ObjectIdString' },
+              attributes: { $ref: '#/components/schemas/AttributesMap' }
+            }
+          },
         },
         examples: {
           // Generic response examples
@@ -705,6 +731,53 @@ export const setupSwagger = (app: Express) => {
           AttributeGroup_Create_5_Another: {
             summary: 'AttributeGroup başka bir örnek',
             value: { name: 'Lojistik', code: 'logistics' }
+          },
+
+          // Item create examples
+          Item_Create_1_Minimal: {
+            summary: 'Item minimal (category itemType.category\'dan) ',
+            value: {
+              name: 'Ürün-1',
+              code: 'PRD-1',
+              itemTypeId: '66e8a1a21a21a1a21a21a1a2'
+            }
+          },
+          Item_Create_2_WithFamily: {
+            summary: 'Item family ile',
+            value: {
+              name: 'Ürün-2',
+              code: 'PRD-2',
+              itemTypeId: '66e8a1a21a21a1a21a21a1a2',
+              familyId: '66e8f1234567890abcdef123'
+            }
+          },
+          Item_Create_3_WithAttributes: {
+            summary: 'Item attributes ile (valid)',
+            value: {
+              name: 'Ürün-3',
+              code: 'PRD-3',
+              itemTypeId: '66e8a1a21a21a1a21a21a1a2',
+              attributes: { product_name: 'Gömlek', size: 'm', color: '#000000' }
+            }
+          },
+          Item_Create_4_NoAttributesButGroups: {
+            summary: 'Item groups ile (attributes boş)',
+            value: {
+              name: 'Ürün-4',
+              code: 'PRD-4',
+              itemTypeId: '66e8a1a21a21a1a21a21a1a2'
+            }
+          },
+          Item_Create_5_Full: {
+            summary: 'Item full alanlar',
+            value: {
+              name: 'Ürün-5',
+              code: 'PRD-5',
+              itemTypeId: '66e8a1a21a21a1a21a21a1a2',
+              categoryId: '66e8b2b2b2b2b2b2b2b2b2b2',
+              familyId: '66e8f1234567890abcdef125',
+              attributes: { product_name: 'Mont', size: 'l', colors: ['red','blue'] }
+            }
           }
         }
       }

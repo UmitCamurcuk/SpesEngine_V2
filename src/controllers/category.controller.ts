@@ -15,7 +15,10 @@ export const createCategory = async (req: Request, res: Response) => {
     if (!it) return sendError(res, { status: 404, code: 'itemtype.not_found', message: 'ItemType not found' });
   }
   // Clean helper field from payload
-  if (itemTypeId) delete (req.body as any).itemTypeId;
+  if (itemTypeId) {
+    (req.body as any).itemType = itemTypeId;
+    delete (req.body as any).itemTypeId;
+  }
 
   const doc = await Category.create(req.body);
   if (itemTypeId) {
@@ -25,12 +28,12 @@ export const createCategory = async (req: Request, res: Response) => {
 };
 
 export const listCategories = async (_req: Request, res: Response) => {
-  const items = await Category.find().sort({ createdAt: -1 });
+  const items = await Category.find().populate('itemType').sort({ createdAt: -1 });
   return sendSuccess(res, { code: 'category.list', message: 'OK', data: items, meta: { count: items.length } });
 };
 
 export const getCategory = async (req: Request, res: Response) => {
-  const doc = await Category.findById(req.params.id);
+  const doc = await Category.findById(req.params.id).populate('itemType');
   if (!doc) return sendError(res, { status: 404, code: 'category.not_found', message: 'Category not found' });
   return sendSuccess(res, { code: 'category.get', message: 'OK', data: doc });
 };

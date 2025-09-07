@@ -21,18 +21,20 @@ export const createItemType = async (req: Request, res: Response) => {
   // Remove linkage helper field from payload to avoid persisting unknown field
   delete (req.body as any).categoryId;
 
+  // Persist primary link directly on document for easy reads
+  (req.body as any).category = categoryId;
   const doc = await ItemType.create(req.body);
   await Association.create({ fromModel: 'ItemType', fromId: doc._id, toModel: 'Category', toId: categoryId, kind: 'belongs_to' });
   return sendCreated(res, { code: 'itemtype.created', message: 'ItemType created', data: doc });
 };
 
 export const listItemTypes = async (_req: Request, res: Response) => {
-  const items = await ItemType.find().sort({ createdAt: -1 });
+  const items = await ItemType.find().populate('category').sort({ createdAt: -1 });
   return sendSuccess(res, { code: 'itemtype.list', message: 'OK', data: items, meta: { count: items.length } });
 };
 
 export const getItemType = async (req: Request, res: Response) => {
-  const doc = await ItemType.findById(req.params.id);
+  const doc = await ItemType.findById(req.params.id).populate('category');
   if (!doc) return sendError(res, { status: 404, code: 'itemtype.not_found', message: 'ItemType not found' });
   return sendSuccess(res, { code: 'itemtype.get', message: 'OK', data: doc });
 };
