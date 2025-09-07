@@ -531,6 +531,16 @@ export const setupSwagger = (app: Express) => {
               attributes: { size_table: [ { size:'s', chest: 48, waist: 46 } ] }
             }
           },
+          Family_Create_WithParent: {
+            summary: 'Family örneği (parent ile)',
+            value: {
+              name: 'V Yaka Tişört',
+              code: 'vneck_tshirt',
+              parent: '66e8f1234567890abcdef123',
+              attributeGroups: ['66e882f3e3a9f3b2a1c4d789'],
+              attributes: { product_name: 'V Yaka' }
+            }
+          },
           Association_Create: {
             summary: 'Association örneği',
             value: {

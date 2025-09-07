@@ -23,6 +23,8 @@ const router = Router();
  *           examples:
  *             default:
  *               $ref: '#/components/examples/Family_Create'
+ *             with_parent:
+ *               $ref: '#/components/examples/Family_Create_WithParent'
  *               attributeGroups: { type: array, items: { type: string } }
  *               attributes: { type: object }
  *     responses:
