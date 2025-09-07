@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createItem, deleteItem, getItem, listItems, resolveItemAttributes, updateItem } from '../controllers/item.controller';
+import { authenticate, requirePermission } from '../middleware/auth';
 
 const router = Router();
 
@@ -24,6 +25,11 @@ const router = Router();
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/ItemCreate'
+ *           description: |
+ *             Kurallar:
+ *             - `categoryId`, seçilen `itemTypeId` ile uyumlu olmak zorundadır (Category.itemType == ItemType._id)
+ *             - `familyId` verilecekse, seçilen kategoriye ait olmalıdır (Family.category == Category._id)
+ *             - Efektif attribute grupları: itemType + kategori ataları + family ataları üzerinden birleşir; required alanlar zorunludur
  *           examples:
  *             ex1_minimal:
  *               $ref: '#/components/examples/Item_Create_1_Minimal'
@@ -41,9 +47,11 @@ const router = Router();
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
+ *       400:
+ *         description: Invalid selection (category not in itemType, or family not in category)
  */
-router.get('/', listItems);
-router.post('/', createItem);
+router.get('/', authenticate, requirePermission('item.read'), listItems);
+router.post('/', authenticate, requirePermission('item.create'), createItem);
 
 /**
  * @openapi
@@ -58,10 +66,13 @@ router.post('/', createItem);
  *         schema: { type: string }
  *       - in: query
  *         name: categoryId
+ *         required: true
  *         schema: { type: string }
  *       - in: query
  *         name: familyId
  *         schema: { type: string }
+ *     description: |
+ *       Dönen `attributeGroupIds`, itemType + kategori ataları + family ataları birleşimini içerir.
  *     responses:
  *       200:
  *         description: OK
@@ -69,7 +80,7 @@ router.post('/', createItem);
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
-router.get('/attributes/resolve', resolveItemAttributes);
+router.get('/attributes/resolve', authenticate, requirePermission('item.read'), resolveItemAttributes);
 
 /**
  * @openapi
@@ -129,9 +140,8 @@ router.get('/attributes/resolve', resolveItemAttributes);
  *       200: { description: OK }
  *       404: { description: Not Found }
  */
-router.get('/:id', getItem);
-router.patch('/:id', updateItem);
-router.delete('/:id', deleteItem);
+router.get('/:id', authenticate, requirePermission('item.read'), getItem);
+router.patch('/:id', authenticate, requirePermission('item.update'), updateItem);
+router.delete('/:id', authenticate, requirePermission('item.delete'), deleteItem);
 
 export default router;
-

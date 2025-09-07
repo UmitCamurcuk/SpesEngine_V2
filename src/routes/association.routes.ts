@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createAssociation, deleteAssociation, getAssociation, listAssociations } from '../controllers/association.controller';
+import { authenticate, requirePermission } from '../middleware/auth';
 
 const router = Router();
 
@@ -58,8 +59,8 @@ const router = Router();
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
-router.get('/', listAssociations);
-router.post('/', createAssociation);
+router.get('/', authenticate, requirePermission('association.read'), listAssociations);
+router.post('/', authenticate, requirePermission('association.create'), createAssociation);
 
 /**
  * @openapi
@@ -87,7 +88,7 @@ router.post('/', createAssociation);
  *       200: { description: OK }
  *       404: { description: Not Found }
  */
-router.get('/:id', getAssociation);
-router.delete('/:id', deleteAssociation);
+router.get('/:id', authenticate, requirePermission('association.read'), getAssociation);
+router.delete('/:id', authenticate, requirePermission('association.delete'), deleteAssociation);
 
 export default router;

@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { createItemType, listItemTypes, getItemType, updateItemType, deleteItemType } from '../controllers/itemType.controller';
+import { createItemType, listItemTypes, getItemType, updateItemType, deleteItemType, listCategoriesByItemType } from '../controllers/itemType.controller';
+import { authenticate, requirePermission } from '../middleware/auth';
 
 const router = Router();
 
@@ -41,8 +42,8 @@ const router = Router();
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
-router.get('/', listItemTypes);
-router.post('/', createItemType);
+router.get('/', authenticate, requirePermission('itemType.read'), listItemTypes);
+router.post('/', authenticate, requirePermission('itemType.create'), createItemType);
 
 /**
  * @openapi
@@ -89,6 +90,8 @@ router.post('/', createItemType);
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
+ *       409:
+ *         description: Removing attributeGroups is restricted while items exist for this item type
  *       404: { description: Not Found }
  *   delete:
  *     summary: Delete item type
@@ -100,10 +103,28 @@ router.post('/', createItemType);
  *         schema: { type: string }
  *     responses:
  *       200: { description: OK }
+ *       409:
+ *         description: Cannot delete ItemType while items exist
  *       404: { description: Not Found }
  */
-router.get('/:id', getItemType);
-router.patch('/:id', updateItemType);
-router.delete('/:id', deleteItemType);
+router.get('/:id', authenticate, requirePermission('itemType.read'), getItemType);
+router.patch('/:id', authenticate, requirePermission('itemType.update'), updateItemType);
+router.delete('/:id', authenticate, requirePermission('itemType.delete'), deleteItemType);
+
+/**
+ * @openapi
+ * /api/item-types/{id}/categories:
+ *   get:
+ *     summary: List categories that belong to the item type
+ *     tags: [ItemType]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: 'string' }
+ *     responses:
+ *       200: { description: OK }
+ */
+router.get('/:id/categories', authenticate, requirePermission('category.read'), listCategoriesByItemType);
 
 export default router;

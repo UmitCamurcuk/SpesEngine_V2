@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createFamily, deleteFamily, getFamily, listFamilies, updateFamily, getFamilyTree } from '../controllers/family.controller';
+import { authenticate, requirePermission } from '../middleware/auth';
 
 const router = Router();
 
@@ -38,8 +39,8 @@ const router = Router();
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
-router.get('/', listFamilies);
-router.post('/', createFamily);
+router.get('/', authenticate, requirePermission('family.read'), listFamilies);
+router.post('/', authenticate, requirePermission('family.create'), createFamily);
 
 /**
  * @openapi
@@ -50,7 +51,7 @@ router.post('/', createFamily);
  *     responses:
  *       200: { description: OK }
  */
-router.get('/tree', getFamilyTree);
+router.get('/tree', authenticate, requirePermission('family.read'), getFamilyTree);
 
 /**
  * @openapi
@@ -95,6 +96,8 @@ router.get('/tree', getFamilyTree);
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
+ *       409:
+ *         description: Removing attributeGroups is restricted while items exist for this family
  *       404: { description: Not Found }
  *   delete:
  *     summary: Delete family
@@ -106,10 +109,12 @@ router.get('/tree', getFamilyTree);
  *         schema: { type: string }
  *     responses:
  *       200: { description: OK }
+ *       409:
+ *         description: Cannot delete family while items exist for it
  *       404: { description: Not Found }
  */
-router.get('/:id', getFamily);
-router.patch('/:id', updateFamily);
-router.delete('/:id', deleteFamily);
+router.get('/:id', authenticate, requirePermission('family.read'), getFamily);
+router.patch('/:id', authenticate, requirePermission('family.update'), updateFamily);
+router.delete('/:id', authenticate, requirePermission('family.delete'), deleteFamily);
 
 export default router;

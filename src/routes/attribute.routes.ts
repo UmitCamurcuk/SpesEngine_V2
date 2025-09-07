@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createAttribute, deleteAttribute, getAttribute, listAttributes, updateAttribute } from '../controllers/attribute.controller';
+import { authenticate, requirePermission } from '../middleware/auth';
 
 const router = Router();
 
@@ -70,8 +71,8 @@ const router = Router();
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
-router.get('/', listAttributes);
-router.post('/', createAttribute);
+router.get('/', authenticate, requirePermission('attribute.read'), listAttributes);
+router.post('/', authenticate, requirePermission('attribute.create'), createAttribute);
 
 /**
  * @openapi
@@ -126,8 +127,8 @@ router.post('/', createAttribute);
  *       200: { description: OK }
  *       404: { description: Not Found }
  */
-router.get('/:id', getAttribute);
-router.patch('/:id', updateAttribute);
-router.delete('/:id', deleteAttribute);
+router.get('/:id', authenticate, requirePermission('attribute.read'), getAttribute);
+router.patch('/:id', authenticate, requirePermission('attribute.update'), updateAttribute);
+router.delete('/:id', authenticate, requirePermission('attribute.delete'), deleteAttribute);
 
 export default router;

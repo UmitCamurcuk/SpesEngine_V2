@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createAttributeGroup, deleteAttributeGroup, getAttributeGroup, listAttributeGroups, updateAttributeGroup } from '../controllers/attributeGroup.controller';
+import { authenticate, requirePermission } from '../middleware/auth';
 
 const router = Router();
 
@@ -42,8 +43,8 @@ const router = Router();
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
-router.get('/', listAttributeGroups);
-router.post('/', createAttributeGroup);
+router.get('/', authenticate, requirePermission('attributeGroup.read'), listAttributeGroups);
+router.post('/', authenticate, requirePermission('attributeGroup.create'), createAttributeGroup);
 
 /**
  * @openapi
@@ -95,10 +96,12 @@ router.post('/', createAttributeGroup);
  *         schema: { type: string }
  *     responses:
  *       200: { description: OK }
+ *       409:
+ *         description: Cannot delete while it contains attributes or is referenced by item types, categories or families
  *       404: { description: Not Found }
  */
-router.get('/:id', getAttributeGroup);
-router.patch('/:id', updateAttributeGroup);
-router.delete('/:id', deleteAttributeGroup);
+router.get('/:id', authenticate, requirePermission('attributeGroup.read'), getAttributeGroup);
+router.patch('/:id', authenticate, requirePermission('attributeGroup.update'), updateAttributeGroup);
+router.delete('/:id', authenticate, requirePermission('attributeGroup.delete'), deleteAttributeGroup);
 
 export default router;

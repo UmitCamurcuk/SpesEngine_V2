@@ -4,6 +4,7 @@ import { Category } from '../models/Category';
 import { Association } from '../models/Association';
 import { validateEntityAttributes } from '../utils/attributeValidation';
 import { sendCreated, sendError, sendSuccess } from '../utils/response';
+import { Item } from '../models/Item';
 
 export const createFamily = async (req: Request, res: Response) => {
   if (Object.prototype.hasOwnProperty.call(req.body, 'attributes')) {
@@ -40,6 +41,18 @@ export const getFamily = async (req: Request, res: Response) => {
 export const updateFamily = async (req: Request, res: Response) => {
   const existing = await Family.findById(req.params.id);
   if (!existing) return sendError(res, { status: 404, code: 'family.not_found', message: 'Family not found' });
+  // Guard removing attribute groups while items exist for this family
+  if (Array.isArray(req.body.attributeGroups)) {
+    const prev: string[] = ((existing.get('attributeGroups') as any) || []).map((x: any) => String(x));
+    const next: string[] = (req.body.attributeGroups || []).map((x: any) => String(x));
+    const removed = prev.filter((p) => !next.includes(p));
+    if (removed.length > 0) {
+      const itemCount = await Item.countDocuments({ family: existing._id });
+      if (itemCount > 0) {
+        return sendError(res, { status: 409, code: 'family.groups_remove_restricted', message: 'Cannot remove attribute groups while items exist for this family' });
+      }
+    }
+  }
   if (req.body.attributes || req.body.attributeGroups) {
     const groupIds: string[] = req.body.attributeGroups || (existing.get('attributeGroups') as any) || [];
     const normalized = await validateEntityAttributes({
@@ -50,14 +63,17 @@ export const updateFamily = async (req: Request, res: Response) => {
     });
     req.body.attributes = normalized;
   }
-  const updated = await Family.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const updated = await Family.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   return sendSuccess(res, { code: 'family.updated', message: 'Family updated', data: updated });
 };
 
 export const deleteFamily = async (req: Request, res: Response) => {
+  const fam = await Family.findById(req.params.id);
+  if (!fam) return sendError(res, { status: 404, code: 'family.not_found', message: 'Family not found' });
+  const itemCount = await Item.countDocuments({ family: fam._id });
+  if (itemCount > 0) return sendError(res, { status: 409, code: 'family.delete_restricted_items', message: 'Cannot delete family while items exist for it' });
   const doc = await Family.findByIdAndDelete(req.params.id);
-  if (!doc) return sendError(res, { status: 404, code: 'family.not_found', message: 'Family not found' });
-  return sendSuccess(res, { code: 'family.deleted', message: 'Family deleted', data: { id: doc._id } });
+  return sendSuccess(res, { code: 'family.deleted', message: 'Family deleted', data: { id: doc!._id } });
 };
 
 export const getFamilyTree = async (_req: Request, res: Response) => {

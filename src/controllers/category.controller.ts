@@ -4,6 +4,8 @@ import { ItemType } from '../models/ItemType';
 import { Association } from '../models/Association';
 import { sendCreated, sendError, sendSuccess } from '../utils/response';
 import { validateEntityAttributes } from '../utils/attributeValidation';
+import { Family } from '../models/Family';
+import { Item } from '../models/Item';
 
 export const createCategory = async (req: Request, res: Response) => {
   if (Object.prototype.hasOwnProperty.call(req.body, 'attributes')) {
@@ -41,6 +43,18 @@ export const getCategory = async (req: Request, res: Response) => {
 export const updateCategory = async (req: Request, res: Response) => {
   const existing = await Category.findById(req.params.id);
   if (!existing) return sendError(res, { status: 404, code: 'category.not_found', message: 'Category not found' });
+  // Guard removing attribute groups while items exist for this category
+  if (Array.isArray(req.body.attributeGroups)) {
+    const prev: string[] = ((existing.get('attributeGroups') as any) || []).map((x: any) => String(x));
+    const next: string[] = (req.body.attributeGroups || []).map((x: any) => String(x));
+    const removed = prev.filter((p) => !next.includes(p));
+    if (removed.length > 0) {
+      const itemCount = await Item.countDocuments({ category: existing._id });
+      if (itemCount > 0) {
+        return sendError(res, { status: 409, code: 'category.groups_remove_restricted', message: 'Cannot remove attribute groups while items exist for this category' });
+      }
+    }
+  }
   if (req.body.attributes || req.body.attributeGroups) {
     const groupIds: string[] = req.body.attributeGroups || (existing.get('attributeGroups') as any) || [];
     const normalized = await validateEntityAttributes({
@@ -51,14 +65,31 @@ export const updateCategory = async (req: Request, res: Response) => {
     });
     req.body.attributes = normalized;
   }
-  const updated = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const updated = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   return sendSuccess(res, { code: 'category.updated', message: 'Category updated', data: updated });
 };
 
 export const deleteCategory = async (req: Request, res: Response) => {
+  const cat = await Category.findById(req.params.id);
+  if (!cat) return sendError(res, { status: 404, code: 'category.not_found', message: 'Category not found' });
+  // Restrict if any family belongs to this category
+  const familyCount = await Family.countDocuments({ category: cat._id });
+  if (familyCount > 0) return sendError(res, { status: 409, code: 'category.delete_restricted_families', message: 'Cannot delete category while families exist for it' });
+  // Restrict if any item belongs to this category
+  const itemCount = await Item.countDocuments({ category: cat._id });
+  if (itemCount > 0) return sendError(res, { status: 409, code: 'category.delete_restricted_items', message: 'Cannot delete category while items exist for it' });
+  // Restrict if any ItemType references this category (if used that way)
+  const itCount = await ItemType.countDocuments({ category: cat._id });
+  if (itCount > 0) return sendError(res, { status: 409, code: 'category.delete_restricted_itemtypes', message: 'Cannot delete category while item types reference it' });
   const doc = await Category.findByIdAndDelete(req.params.id);
-  if (!doc) return sendError(res, { status: 404, code: 'category.not_found', message: 'Category not found' });
-  return sendSuccess(res, { code: 'category.deleted', message: 'Category deleted', data: { id: doc._id } });
+  return sendSuccess(res, { code: 'category.deleted', message: 'Category deleted', data: { id: doc!._id } });
+};
+
+// List families for a category
+export const listFamiliesByCategory = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const items = await Family.find({ category: id }).sort({ name: 1 });
+  return sendSuccess(res, { code: 'category.families', message: 'OK', data: items, meta: { count: items.length } });
 };
 
 export const getCategoryTree = async (_req: Request, res: Response) => {

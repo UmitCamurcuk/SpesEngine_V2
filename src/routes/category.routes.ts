@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { createCategory, deleteCategory, getCategory, listCategories, updateCategory, getCategoryTree } from '../controllers/category.controller';
+import { createCategory, deleteCategory, getCategory, listCategories, updateCategory, getCategoryTree, listFamiliesByCategory } from '../controllers/category.controller';
+import { authenticate, requirePermission } from '../middleware/auth';
 
 const router = Router();
 
@@ -44,8 +45,8 @@ const router = Router();
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
  */
-router.get('/', listCategories);
-router.post('/', createCategory);
+router.get('/', authenticate, requirePermission('category.read'), listCategories);
+router.post('/', authenticate, requirePermission('category.create'), createCategory);
 
 /**
  * @openapi
@@ -56,7 +57,7 @@ router.post('/', createCategory);
  *     responses:
  *       200: { description: OK }
  */
-router.get('/tree', getCategoryTree);
+router.get('/tree', authenticate, requirePermission('category.read'), getCategoryTree);
 
 /**
  * @openapi
@@ -101,6 +102,8 @@ router.get('/tree', getCategoryTree);
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiResponse' }
+ *       409:
+ *         description: Removing attributeGroups is restricted while items exist for this category
  *       404: { description: Not Found }
  *   delete:
  *     summary: Delete category
@@ -112,10 +115,28 @@ router.get('/tree', getCategoryTree);
  *         schema: { type: string }
  *     responses:
  *       200: { description: OK }
+ *       409:
+ *         description: Cannot delete category while families/items exist or item types reference it
  *       404: { description: Not Found }
  */
-router.get('/:id', getCategory);
-router.patch('/:id', updateCategory);
-router.delete('/:id', deleteCategory);
+router.get('/:id', authenticate, requirePermission('category.read'), getCategory);
+router.patch('/:id', authenticate, requirePermission('category.update'), updateCategory);
+router.delete('/:id', authenticate, requirePermission('category.delete'), deleteCategory);
+
+/**
+ * @openapi
+ * /api/categories/{id}/families:
+ *   get:
+ *     summary: List families that belong to the category
+ *     tags: [Category]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: 'string' }
+ *     responses:
+ *       200: { description: OK }
+ */
+router.get('/:id/families', authenticate, requirePermission('family.read'), listFamiliesByCategory);
 
 export default router;

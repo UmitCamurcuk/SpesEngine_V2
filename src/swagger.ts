@@ -20,9 +20,66 @@ export const setupSwagger = (app: Express) => {
         { name: 'Attribute' },
         { name: 'AttributeGroup' },
         { name: 'Item' },
+        { name: 'Auth' },
+        { name: 'Role' },
+        { name: 'PermissionGroup' },
       ],
       components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            description: 'Provide access token as: Bearer <token>'
+          }
+        },
         schemas: {
+          // Auth
+          AuthTokens: {
+            type: 'object',
+            properties: {
+              accessToken: { type: 'string' },
+              refreshToken: { type: 'string' }
+            }
+          },
+          User: {
+            type: 'object',
+            properties: {
+              _id: { $ref: '#/components/schemas/ObjectIdString' },
+              name: { type: 'string' },
+              email: { type: 'string' },
+              role: { $ref: '#/components/schemas/ObjectIdString' },
+              isActive: { type: 'boolean' }
+            }
+          },
+          Role: {
+            type: 'object',
+            properties: {
+              _id: { $ref: '#/components/schemas/ObjectIdString' },
+              name: { type: 'string' },
+              code: { type: 'string' },
+              description: { type: 'string' },
+              grants: { type: 'object', additionalProperties: { type: 'boolean' } },
+              isAdmin: { type: 'boolean' },
+              active: { type: 'boolean' }
+            }
+          },
+          Permission: {
+            type: 'object',
+            properties: { code: { type: 'string' }, description: { type: 'string' } },
+            required: ['code']
+          },
+          PermissionGroup: {
+            type: 'object',
+            properties: {
+              _id: { $ref: '#/components/schemas/ObjectIdString' },
+              name: { type: 'string' },
+              code: { type: 'string' },
+              description: { type: 'string' },
+              permissions: { type: 'array', items: { $ref: '#/components/schemas/Permission' } },
+              active: { type: 'boolean' }
+            }
+          },
           ApiResponse: {
             type: 'object',
             properties: {
@@ -342,12 +399,12 @@ export const setupSwagger = (app: Express) => {
           // Item
           ItemCreate: {
             type: 'object',
-            required: ['name','code','itemTypeId'],
+            required: ['name','code','itemTypeId','categoryId'],
             properties: {
               name: { type: 'string' },
               code: { type: 'string' },
               itemTypeId: { $ref: '#/components/schemas/ObjectIdString' },
-              categoryId: { $ref: '#/components/schemas/ObjectIdString', description: 'Opsiyonel; verilmezse itemType.category kullanılır' },
+              categoryId: { $ref: '#/components/schemas/ObjectIdString', description: 'Zorunlu; seçilen itemType\'a bağlı bir kategori olmalı' },
               familyId: { $ref: '#/components/schemas/ObjectIdString' },
               attributes: { $ref: '#/components/schemas/AttributesMap' }
             }
@@ -743,7 +800,8 @@ export const setupSwagger = (app: Express) => {
             value: {
               name: 'Ürün-1',
               code: 'PRD-1',
-              itemTypeId: '66e8a1a21a21a1a21a21a1a2'
+              itemTypeId: '66e8a1a21a21a1a21a21a1a2',
+              categoryId: '66e8b2b2b2b2b2b2b2b2b2b2'
             }
           },
           Item_Create_2_WithFamily: {
@@ -752,6 +810,7 @@ export const setupSwagger = (app: Express) => {
               name: 'Ürün-2',
               code: 'PRD-2',
               itemTypeId: '66e8a1a21a21a1a21a21a1a2',
+              categoryId: '66e8b2b2b2b2b2b2b2b2b2b2',
               familyId: '66e8f1234567890abcdef123'
             }
           },
@@ -761,6 +820,7 @@ export const setupSwagger = (app: Express) => {
               name: 'Ürün-3',
               code: 'PRD-3',
               itemTypeId: '66e8a1a21a21a1a21a21a1a2',
+              categoryId: '66e8b2b2b2b2b2b2b2b2b2b2',
               attributes: { product_name: 'Gömlek', size: 'm', color: '#000000' }
             }
           },
@@ -769,7 +829,8 @@ export const setupSwagger = (app: Express) => {
             value: {
               name: 'Ürün-4',
               code: 'PRD-4',
-              itemTypeId: '66e8a1a21a21a1a21a21a1a2'
+              itemTypeId: '66e8a1a21a21a1a21a21a1a2',
+              categoryId: '66e8b2b2b2b2b2b2b2b2b2b2'
             }
           },
           Item_Create_5_Full: {

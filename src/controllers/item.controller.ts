@@ -12,29 +12,53 @@ const ensureExists = async <T>(model: any, id: string, code: string, notFoundCod
   return doc as T;
 };
 
-const loadGroupsFor = async (opts: { itemTypeId: string; categoryId?: string | null; familyId?: string | null }) => {
+const loadGroupsFor = async (opts: { itemTypeId: string; categoryId: string; familyId?: string | null }) => {
   const it = await ItemType.findById(opts.itemTypeId).lean();
   if (!it) throw Object.assign(new Error('ItemType not found'), { status: 404, code: 'itemtype.not_found' });
-  const categoryId = (opts.categoryId as any) || (it as any).category;
-  if (!categoryId) throw Object.assign(new Error('Category not resolved from itemType'), { status: 400, code: 'item.category_missing' });
-  const cat = await Category.findById(categoryId).lean();
+
+  const cat = await Category.findById(opts.categoryId).lean();
   if (!cat) throw Object.assign(new Error('Category not found'), { status: 404, code: 'category.not_found' });
+
+  // Ensure category belongs to the chosen itemType via Category.itemType
+  if (!cat.itemType || String(cat.itemType) !== String(opts.itemTypeId)) {
+    throw Object.assign(new Error('Category does not belong to selected itemType'), { status: 400, code: 'item.category_not_allowed' });
+  }
+
   let fam: any = null;
   if (opts.familyId) {
     fam = await Family.findById(opts.familyId).lean();
     if (!fam) throw Object.assign(new Error('Family not found'), { status: 404, code: 'family.not_found' });
+    if (!fam.category || String(fam.category) !== String(cat._id)) {
+      throw Object.assign(new Error('Family does not belong to selected category'), { status: 400, code: 'item.family_category_mismatch' });
+    }
   }
+
+  // Collect attribute groups including ancestors for category and family
+  const categoryIds = [String(cat._id), ...(((cat as any).ancestors || []).map((a: any) => String(a)))];
+  const categories = await Category.find({ _id: { $in: categoryIds } }).lean();
+  const categoryGroupIds = categories.flatMap((c: any) => ((c.attributeGroups as any[]) || []).map((x) => String(x)));
+
+  let familyGroupIds: string[] = [];
+  if (fam) {
+    const familyIds = [String(fam._id), ...(((fam as any).ancestors || []).map((a: any) => String(a)))];
+    const families = await Family.find({ _id: { $in: familyIds } }).lean();
+    familyGroupIds = families.flatMap((f: any) => ((f.attributeGroups as any[]) || []).map((x) => String(x)));
+  }
+
   const groupIds: string[] = [
-    ...(((it as any).attributeGroups as string[]) || []),
-    ...(((cat as any).attributeGroups as string[]) || []),
-    ...((fam ? (fam.attributeGroups as string[]) : []) || []),
-  ].map((id: any) => String(id));
-  return { itemType: it, category: cat, family: fam, groupIds };
+    ...(((it as any).attributeGroups as string[]) || []).map((x: any) => String(x)),
+    ...categoryGroupIds,
+    ...familyGroupIds,
+  ];
+  // ensure unique
+  const uniqueGroupIds = Array.from(new Set(groupIds));
+  return { itemType: it, category: cat, family: fam, groupIds: uniqueGroupIds };
 };
 
 export const resolveItemAttributes = async (req: Request, res: Response) => {
   const { itemTypeId, categoryId, familyId } = req.query as any;
   if (!itemTypeId) return sendError(res, { status: 400, code: 'item.resolve.missing_itemtype', message: 'itemTypeId is required' });
+  if (!categoryId) return sendError(res, { status: 400, code: 'item.resolve.missing_category', message: 'categoryId is required' });
   try {
     const { itemType, category, family, groupIds } = await loadGroupsFor({ itemTypeId, categoryId, familyId });
     // We only return schema (attributes) definitions. Utils loader already returns docs; we’ll refetch via validation util to keep single source
@@ -57,35 +81,29 @@ export const resolveItemAttributes = async (req: Request, res: Response) => {
 
 export const createItem = async (req: Request, res: Response) => {
   const { name, code, itemTypeId, categoryId, familyId, attributes } = req.body as {
-    name: string; code: string; itemTypeId: string; categoryId?: string | null; familyId?: string | null; attributes?: Record<string, any>;
+    name: string; code: string; itemTypeId: string; categoryId: string; familyId?: string | null; attributes?: Record<string, any>;
   };
 
   if (!itemTypeId) return sendError(res, { status: 400, code: 'item.itemtype_required', message: 'itemTypeId is required' });
+  if (!categoryId) return sendError(res, { status: 400, code: 'item.category_required', message: 'categoryId is required' });
 
   const it = await ensureExists<any>(ItemType, itemTypeId, 'ItemType', 'itemtype.not_found');
-  const enforcedCategoryId = String(it.category);
-  if (!enforcedCategoryId) return sendError(res, { status: 400, code: 'item.category_missing', message: 'ItemType has no category; cannot create item' });
-  if (categoryId && String(categoryId) !== enforcedCategoryId) {
-    return sendError(res, { status: 400, code: 'item.category_mismatch', message: 'categoryId must equal selected itemType\'s category' });
+  const cat = await ensureExists<any>(Category, categoryId, 'Category', 'category.not_found');
+  if (!cat.itemType || String(cat.itemType) !== String(it._id)) {
+    return sendError(res, { status: 400, code: 'item.category_not_allowed', message: 'Selected category does not belong to the chosen itemType' });
   }
-  const cat = await ensureExists<any>(Category, enforcedCategoryId, 'Category', 'category.not_found');
   let fam: any = null;
   if (familyId) {
     fam = await ensureExists<any>(Family, familyId, 'Family', 'family.not_found');
-    if (!fam.category || String(fam.category) !== enforcedCategoryId) {
-      return sendError(res, { status: 400, code: 'item.family_category_mismatch', message: 'Family must belong to the category enforced by itemType' });
+    if (!fam.category || String(fam.category) !== String(categoryId)) {
+      return sendError(res, { status: 400, code: 'item.family_category_mismatch', message: 'Family must belong to the selected category' });
     }
   }
 
-  // Validate attributes against union of groups
-  const groupIds: string[] = [
-    ...((it.attributeGroups as any[]) || []),
-    ...((cat.attributeGroups as any[]) || []),
-    ...((fam ? (fam.attributeGroups as any[]) : [])),
-  ].map((id: any) => String(id));
+  const { groupIds } = await loadGroupsFor({ itemTypeId, categoryId, familyId });
   const normalized = await validateEntityAttributes({ attributeGroupIds: groupIds, values: attributes, isUpdate: false });
 
-  const doc = await Item.create({ name, code, itemType: itemTypeId, category: enforcedCategoryId, family: familyId || null, attributes: normalized });
+  const doc = await Item.create({ name, code, itemType: itemTypeId, category: categoryId, family: familyId || null, attributes: normalized });
   const populated = await Item.findById(doc._id).populate('itemType').populate('category').populate('family');
   return sendCreated(res, { code: 'item.created', message: 'Item created', data: populated });
 };
@@ -106,29 +124,24 @@ export const updateItem = async (req: Request, res: Response) => {
   if (!existing) return sendError(res, { status: 404, code: 'item.not_found', message: 'Item not found' });
 
   const nextItemTypeId = (req.body.itemTypeId as string) || String(existing.itemType);
+  const nextCategoryId = (req.body.categoryId as string) || String(existing.category);
   const it = await ensureExists<any>(ItemType, nextItemTypeId, 'ItemType', 'itemtype.not_found');
-  const enforcedCategoryId = String(it.category);
-  if (!enforcedCategoryId) return sendError(res, { status: 400, code: 'item.category_missing', message: 'ItemType has no category; cannot update item' });
-  if (req.body.categoryId && String(req.body.categoryId) !== enforcedCategoryId) {
-    return sendError(res, { status: 400, code: 'item.category_mismatch', message: 'categoryId must equal selected itemType\'s category' });
+  const cat = await ensureExists<any>(Category, nextCategoryId, 'Category', 'category.not_found');
+  if (!cat.itemType || String(cat.itemType) !== String(it._id)) {
+    return sendError(res, { status: 400, code: 'item.category_not_allowed', message: 'Selected category does not belong to the chosen itemType' });
   }
-  const cat = await ensureExists<any>(Category, enforcedCategoryId, 'Category', 'category.not_found');
   const nextFamilyId = (req.body.familyId as string) || (existing.family ? String(existing.family) : undefined);
   let fam: any = null;
   if (nextFamilyId) {
     fam = await ensureExists<any>(Family, nextFamilyId, 'Family', 'family.not_found');
-    if (!fam.category || String(fam.category) !== enforcedCategoryId) {
-      return sendError(res, { status: 400, code: 'item.family_category_mismatch', message: 'Family must belong to the category enforced by itemType' });
+    if (!fam.category || String(fam.category) !== String(nextCategoryId)) {
+      return sendError(res, { status: 400, code: 'item.family_category_mismatch', message: 'Family must belong to the selected category' });
     }
   }
 
   let normalizedAttributes = existing.attributes as any;
   if (req.body.attributes) {
-    const groupIds: string[] = [
-      ...((it.attributeGroups as any[]) || []),
-      ...((cat.attributeGroups as any[]) || []),
-      ...((fam ? (fam.attributeGroups as any[]) : [])),
-    ].map((id: any) => String(id));
+    const { groupIds } = await loadGroupsFor({ itemTypeId: String(it._id), categoryId: String(cat._id), familyId: fam ? String(fam._id) : undefined });
     normalizedAttributes = await validateEntityAttributes({
       attributeGroupIds: groupIds,
       values: req.body.attributes,
@@ -139,8 +152,7 @@ export const updateItem = async (req: Request, res: Response) => {
 
   const patch: any = { ...req.body };
   if (req.body.itemTypeId) patch.itemType = req.body.itemTypeId;
-  // Always enforce category from itemType
-  patch.category = enforcedCategoryId;
+  if (req.body.categoryId) patch.category = req.body.categoryId;
   if (req.body.familyId !== undefined) patch.family = req.body.familyId;
   if (req.body.attributes) patch.attributes = normalizedAttributes;
 

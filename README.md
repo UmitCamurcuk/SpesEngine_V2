@@ -9,6 +9,8 @@ ItemType, Category ve Family varlıkları ile hiyerarşik bir yapı ve bunları 
 - Swagger UI ile API dokümantasyonu (`/docs`)
 - Express, Mongoose, TypeScript
 
+İş kuralları ve davranışlarla ilgili detaylı notlar için: `docs/NOTES.md`.
+
 ## Kurulum
 1. Bağımlılıkları yükle:
    ```bash
@@ -83,4 +85,3 @@ Varsayılan olarak sunucu `http://localhost:3000` üzerinde açılır ve Swagger
 ## Notlar
 - Category ve Family kayıtlarında `parent` değiştiğinde `ancestors` otomatik güncellenir.
 - Swagger şemaları rotalardaki JSDoc üzerinden üretilmektedir (`src/routes/*.ts`).
-
